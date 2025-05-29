@@ -10,20 +10,46 @@ st.markdown("""
 Questa app ti permette di generare un file `extensions.csv` per l'importazione in 3CX partendo da un codice punto vendita.
 
 - Gli interni verranno generati automaticamente in base al codice PV.
+- Alcuni ruoli chiave (Direttore, Vicedirettore, Capo Cassiera, Ricevimento Merci) vengono creati automaticamente.
 - Puoi scaricare direttamente il file pronto per l'import.
 """)
 
 # Input del codice punto vendita (PV)
 codice_pv = st.text_input("Codice Punto Vendita (PV)", max_chars=6)
 
-# Numero di estensioni da generare
-num_extensions = st.number_input("Numero di estensioni da generare", min_value=1, max_value=100, value=5)
+# Numero di estensioni aggiuntive da generare (oltre ai ruoli fissi)
+num_extensions = st.number_input("Numero di estensioni aggiuntive da generare", min_value=0, max_value=100, value=5)
 
 def generate_extensions(pv_code: str, count: int):
     base = int(pv_code) * 100
     extensions = []
+
+    # Estensioni fisse per i ruoli chiave
+    ruoli_fissi = [
+        (99, "Direttore"),
+        (98, "Vicedirettore"),
+        (97, "Capo Cassiera"),
+        (96, "Ricevimento Merci")
+    ]
+    for suffix, ruolo in ruoli_fissi:
+        ext = base + suffix
+        extensions.append({
+            "Extension": ext,
+            "First Name": ruolo,
+            "Last Name": "",
+            "Email Address": f"user{ext}@example.com",
+            "Mobile Number": "",
+            "Outbound Caller ID": "",
+            "Authentication ID": ext,
+            "Authentication Password": ""
+        })
+
+    # Estensioni aggiuntive
     for i in range(count):
         ext = base + i
+        # Evita duplicati con gli interni fissi (base+96 fino base+99)
+        if ext in [base + s for s, _ in ruoli_fissi]:
+            continue
         extensions.append({
             "Extension": ext,
             "First Name": f"User{ext}",
@@ -34,6 +60,7 @@ def generate_extensions(pv_code: str, count: int):
             "Authentication ID": ext,
             "Authentication Password": ""
         })
+
     return pd.DataFrame(extensions)
 
 if codice_pv and codice_pv.isdigit():
