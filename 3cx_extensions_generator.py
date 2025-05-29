@@ -10,7 +10,7 @@ st.markdown("""
 Questa app ti permette di generare un file `extensions.csv` per l'importazione in 3CX partendo da un codice punto vendita.
 
 - Gli interni verranno generati automaticamente in base al codice PV.
-- Alcuni ruoli chiave (Direttore, Vicedirettore, Capo Cassiera, Ricevimento Merci) vengono creati automaticamente.
+- Alcuni ruoli chiave (Box, Interfono, Direttore, Vicedirettore, Capo Cassiera, Ricevimento Merci) vengono creati automaticamente.
 - Puoi scaricare direttamente il file pronto per l'import.
 """)
 
@@ -26,6 +26,8 @@ def generate_extensions(pv_code: str, count: int):
 
     # Estensioni fisse per i ruoli chiave
     ruoli_fissi = [
+        (int("00"), "Box"),
+        (80, "Interfono"),
         (99, "Direttore"),
         (98, "Vicedirettore"),
         (97, "Capo Cassiera"),
@@ -47,7 +49,7 @@ def generate_extensions(pv_code: str, count: int):
     # Estensioni aggiuntive
     for i in range(count):
         ext = base + i
-        # Evita duplicati con gli interni fissi (base+96 fino base+99)
+        # Evita duplicati con gli interni fissi
         if ext in [base + s for s, _ in ruoli_fissi]:
             continue
         extensions.append({
