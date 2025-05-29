@@ -20,17 +20,21 @@ codice_pv = st.text_input("Codice Punto Vendita (PV)", max_chars=6)
 # Numero di estensioni aggiuntive da generare (oltre ai ruoli fissi)
 num_extensions = st.number_input("Numero di estensioni aggiuntive da generare", min_value=0, max_value=100, value=5)
 
-# Lista completa delle colonne previste nel CSV originale
-colonne_complete = [
-    'Number', 'FirstName', 'LastName', 'EmailAddress', 'MobileNumber', 'OutboundCallerID', 'DID', 'Role', 'Department',
-    'ClickToCallAuth', 'WMApprove', 'WebMeetingFriendlyName', 'MAC', 'Template', 'Model', 'Router', 'Language',
-    'Ringtone', 'QRingtone', 'VMEnable', 'VMLanguage', 'VMPlayMsgDateTime', 'VMPIN', 'VMEmailOptions', 'VMNoPin',
-    'VMPlayCallerID', 'RecordCalls', 'RecordExternal', 'RecordCanSee', 'RecordCanDelete', 'RecordStartStop',
-    'RecordNotify', 'Disabled', 'HideFWrules', 'DisableExternalCalls', 'HideInPhonebook', 'CallScreening',
-    'PinProtected', 'PinTimeout', 'Transcription', 'AllowLanOnly', 'SIPID', 'DeliverAudio', 'HotDesk', 'SRTPMode',
-    'EmailMissedCalls', 'MS365SignInDisabled', 'MS365CalendarDisabled', 'MS365ContactsDisabled', 'MS365TeamsDisabled',
-    'GoogleSignInDisabled', 'GoogleContactsDisabled', 'GoogleCalendarDisabled', 'BLF'
-]
+# Lista completa delle colonne previste nel CSV originale (53 colonne con valori predefiniti ove possibile)
+colonne_complete = {
+    'Number': '', 'FirstName': '', 'LastName': '', 'EmailAddress': '', 'MobileNumber': '',
+    'OutboundCallerID': '', 'DID': '', 'Role': '', 'Department': '', 'ClickToCallAuth': '',
+    'WMApprove': '', 'WebMeetingFriendlyName': '', 'MAC': '', 'Template': '', 'Model': '',
+    'Router': '', 'Language': 'it', 'Ringtone': '', 'QRingtone': '', 'VMEnable': '',
+    'VMLanguage': '', 'VMPlayMsgDateTime': '', 'VMPIN': '', 'VMEmailOptions': '', 'VMNoPin': '',
+    'VMPlayCallerID': '', 'RecordCalls': '', 'RecordExternal': '', 'RecordCanSee': '', 'RecordCanDelete': '',
+    'RecordStartStop': '', 'RecordNotify': '', 'Disabled': '', 'HideFWrules': '', 'DisableExternalCalls': '',
+    'HideInPhonebook': '', 'CallScreening': '', 'PinProtected': '', 'PinTimeout': '', 'Transcription': '',
+    'AllowLanOnly': '', 'SIPID': '', 'DeliverAudio': '', 'HotDesk': '', 'SRTPMode': '',
+    'EmailMissedCalls': '', 'MS365SignInDisabled': '', 'MS365CalendarDisabled': '',
+    'MS365ContactsDisabled': '', 'MS365TeamsDisabled': '', 'GoogleSignInDisabled': '',
+    'GoogleContactsDisabled': '', 'GoogleCalendarDisabled': '', 'BLF': ''
+}
 
 def generate_extensions(pv_code: str, count: int):
     base = int(pv_code) * 100
@@ -47,7 +51,7 @@ def generate_extensions(pv_code: str, count: int):
     ]
     for suffix, ruolo in ruoli_fissi:
         ext = base + suffix
-        row = {col: "" for col in colonne_complete}
+        row = colonne_complete.copy()
         row.update({
             "Number": ext,
             "FirstName": ruolo,
@@ -60,7 +64,7 @@ def generate_extensions(pv_code: str, count: int):
         ext = base + i
         if ext in [base + s for s, _ in ruoli_fissi]:
             continue
-        row = {col: "" for col in colonne_complete}
+        row = colonne_complete.copy()
         row.update({
             "Number": ext,
             "FirstName": f"User{ext}",
