@@ -20,6 +20,18 @@ codice_pv = st.text_input("Codice Punto Vendita (PV)", max_chars=6)
 # Numero di estensioni aggiuntive da generare (oltre ai ruoli fissi)
 num_extensions = st.number_input("Numero di estensioni aggiuntive da generare", min_value=0, max_value=100, value=5)
 
+# Lista completa delle colonne previste nel CSV originale
+colonne_complete = [
+    'Number', 'FirstName', 'LastName', 'EmailAddress', 'MobileNumber', 'OutboundCallerID', 'DID', 'Role', 'Department',
+    'ClickToCallAuth', 'WMApprove', 'WebMeetingFriendlyName', 'MAC', 'Template', 'Model', 'Router', 'Language',
+    'Ringtone', 'QRingtone', 'VMEnable', 'VMLanguage', 'VMPlayMsgDateTime', 'VMPIN', 'VMEmailOptions', 'VMNoPin',
+    'VMPlayCallerID', 'RecordCalls', 'RecordExternal', 'RecordCanSee', 'RecordCanDelete', 'RecordStartStop',
+    'RecordNotify', 'Disabled', 'HideFWrules', 'DisableExternalCalls', 'HideInPhonebook', 'CallScreening',
+    'PinProtected', 'PinTimeout', 'Transcription', 'AllowLanOnly', 'SIPID', 'DeliverAudio', 'HotDesk', 'SRTPMode',
+    'EmailMissedCalls', 'MS365SignInDisabled', 'MS365CalendarDisabled', 'MS365ContactsDisabled', 'MS365TeamsDisabled',
+    'GoogleSignInDisabled', 'GoogleContactsDisabled', 'GoogleCalendarDisabled', 'BLF'
+]
+
 def generate_extensions(pv_code: str, count: int):
     base = int(pv_code) * 100
     extensions = []
@@ -35,33 +47,26 @@ def generate_extensions(pv_code: str, count: int):
     ]
     for suffix, ruolo in ruoli_fissi:
         ext = base + suffix
-        extensions.append({
-            "Extension": ext,
-            "First Name": ruolo,
-            "Last Name": "",
-            "Email Address": f"user{ext}@example.com",
-            "Mobile Number": "",
-            "Outbound Caller ID": "",
-            "Authentication ID": ext,
-            "Authentication Password": ""
+        row = {col: "" for col in colonne_complete}
+        row.update({
+            "Number": ext,
+            "FirstName": ruolo,
+            "EmailAddress": f"user{ext}@example.com"
         })
+        extensions.append(row)
 
     # Estensioni aggiuntive
     for i in range(count):
         ext = base + i
-        # Evita duplicati con gli interni fissi
         if ext in [base + s for s, _ in ruoli_fissi]:
             continue
-        extensions.append({
-            "Extension": ext,
-            "First Name": f"User{ext}",
-            "Last Name": "",
-            "Email Address": f"user{ext}@example.com",
-            "Mobile Number": "",
-            "Outbound Caller ID": "",
-            "Authentication ID": ext,
-            "Authentication Password": ""
+        row = {col: "" for col in colonne_complete}
+        row.update({
+            "Number": ext,
+            "FirstName": f"User{ext}",
+            "EmailAddress": f"user{ext}@example.com"
         })
+        extensions.append(row)
 
     return pd.DataFrame(extensions)
 
