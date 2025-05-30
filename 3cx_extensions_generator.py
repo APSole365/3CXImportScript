@@ -29,7 +29,7 @@ colonne_complete = {
     'Number': '', 'FirstName': '', 'LastName': '', 'EmailAddress': '', 'MobileNumber': '',
     'OutboundCallerID': '', 'DID': '', 'Role': '', 'Department': 'DEFAULT', 'ClickToCallAuth': '',
     'WMApprove': '', 'WebMeetingFriendlyName': '', 'MAC': '', 'Template': '', 'Model': '',
-    'Router': '', 'Language': 'Italian', 'Ringtone': 'Ring 1', 'QRingtone': 'Ring 6', 'VMEnable': '0',
+    'Router': '', 'Language': 'Italian', 'Ringtone': 'Ring1.wav', 'QRingtone': 'Ring6.wav', 'VMEnable': '0',
     'VMLanguage': '', 'VMPlayMsgDateTime': '0', 'VMPIN': '', 'VMEmailOptions': '0', 'VMNoPin': '0',
     'VMPlayCallerID': '0', 'RecordCalls': '0', 'RecordExternal': '0', 'RecordCanSee': '', 'RecordCanDelete': '',
     'RecordStartStop': '', 'RecordNotify': '0', 'Disabled': '0', 'HideFWrules': '0', 'DisableExternalCalls': '0',
@@ -37,20 +37,26 @@ colonne_complete = {
     'AllowLanOnly': '0', 'SIPID': '', 'DeliverAudio': '0', 'HotDesk': '0', 'SRTPMode': '0',
     'EmailMissedCalls': '0', 'MS365SignInDisabled': '0', 'MS365CalendarDisabled': '0',
     'MS365ContactsDisabled': '0', 'MS365TeamsDisabled': '0', 'GoogleSignInDisabled': '0',
-    'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': '<PhoneDevice><BLFS/></PhoneDevice>'
+    'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': ''
 }
+
+def crea_blf_stringa(pv_code):
+    base = int(pv_code) * 100
+    blf_list = [f"<BLF>{base + ext}@ext</BLF>" for ext in [0, 80, 99, 98, 97, 96]]
+    return f"<PhoneDevice><BLFS>{''.join(blf_list)}</BLFS></PhoneDevice>"
 
 def generate_extensions(pv_code: str, count: int):
     base = int(pv_code) * 100
     extensions = []
+    blf_string = crea_blf_stringa(pv_code)
 
     ruoli_fissi = [
-        (0, "Box", mac_box, "Yealink T42U", "T42U"),
-        (80, "Interfono", mac_interfono, "Fanvil PA3", "PA3"),
-        (99, "Direttore", '', "Yealink T42U", "T42U"),
-        (98, "Vicedirettore", '', "Yealink T42U", "T42U"),
-        (97, "Capo Cassiera", '', "Yealink T42U", "T42U"),
-        (96, "Ricevimento Merci", '', "Yealink T42U", "T42U")
+        (0, "Box", mac_box, "yealink_t42u", "T42U"),
+        (80, "Interfono", mac_interfono, "fanvil_pa3", "PA3"),
+        (99, "Direttore", '', "yealink_t42u", "T42U"),
+        (98, "Vicedirettore", '', "yealink_t42u", "T42U"),
+        (97, "Capo Cassiera", '', "yealink_t42u", "T42U"),
+        (96, "Ricevimento Merci", '', "yealink_t42u", "T42U")
     ]
     used_suffixes = set()
 
@@ -66,7 +72,7 @@ def generate_extensions(pv_code: str, count: int):
             "Router": mac,
             "Template": template,
             "Model": model,
-            "BLF": '<PhoneDevice><BLFS/></PhoneDevice>',
+            "BLF": blf_string,
             "SRTPMode": '0'
         })
         extensions.append(row)
@@ -86,9 +92,9 @@ def generate_extensions(pv_code: str, count: int):
             "EmailAddress": f"user{ext}@example.com",
             "MAC": mac,
             "Router": mac,
-            "Template": "Yealink T42U",
+            "Template": "yealink_t42u",
             "Model": "T42U",
-            "BLF": '<PhoneDevice><BLFS/></PhoneDevice>',
+            "BLF": blf_string,
             "SRTPMode": '0'
         })
         extensions.append(row)
