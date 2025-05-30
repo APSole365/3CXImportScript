@@ -82,7 +82,12 @@ if codice_pv and codice_pv.isdigit():
         numero = chiave.split(" - ")[0]
         nome = chiave.split(" - ")[1]
         row = colonne.copy()
-        row.update(valori_fissi)
+        
+    row.update(valori_fissi)
+    if nome == "Interfono":
+        row["Template"] = "fanvil_doorphone.ph.xml"
+        row["Model"] = "Fanvil PA3"
+    
         row["Number"] = numero
         row["FirstName"] = f"{numero} {nome}"
         row["WebMeetingFriendlyName"] = f"{numero}{nome.lower().replace(' ', '')}"
