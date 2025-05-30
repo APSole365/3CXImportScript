@@ -19,6 +19,11 @@ codice_pv = st.text_input("Codice Punto Vendita (PV)", max_chars=6)
 num_extensions = st.number_input("Numero di estensioni aggiuntive da generare", min_value=0, max_value=100, value=5)
 
 # Prompt MAC per Box e Interfono
+mac_addresses_extra = []
+for i in range(num_extensions):
+    mac_input = st.text_input(f"MAC Address per estensione aggiuntiva #{i+1}", key=f"mac_extra_{i}")
+    mac_addresses_extra.append(mac_input)
+
 mac_box = st.text_input("MAC Address - Box (interno 00)", max_chars=17)
 mac_interfono = st.text_input("MAC Address - Interfono (interno 80)", max_chars=17)
 
@@ -77,11 +82,13 @@ def generate_extensions(pv_code: str, count: int):
         extensions.append(row)
 
     # Estensioni extra
+    
     for i in range(count):
         ext = base + i
         if ext in [base + s for s, _ in ruoli_fissi]:
             continue
         row = colonne_complete.copy()
+        mac_extra = mac_addresses_extra[i] if i < len(mac_addresses_extra) else ""
         row.update({
             "Number": ext,
             "FirstName": f"User{ext}",
@@ -90,9 +97,12 @@ def generate_extensions(pv_code: str, count: int):
             "Template": "yealinkT4x.ph.xml",
             "Model": "Yealink T42U",
             "Language": "it",
-            "BLF": f"{ext}*User{ext}"
+            "BLF": f"{ext}*User{ext}",
+            "MAC": mac_extra,
+            "Router": mac_extra
         })
         extensions.append(row)
+
 
     return pd.DataFrame(extensions)
 
