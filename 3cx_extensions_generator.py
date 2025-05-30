@@ -9,7 +9,7 @@ st.title("📞 3CX Extensions Generator")
 st.markdown("""
 Questa app genera un file `extensions.csv` compatibile con 3CX, rispettando il formato ufficiale.
 - Inserisci il codice punto vendita (PV)
-- Compila i MAC address richiesti
+- MAC richiesti solo per Box (00) e Interfono (80)
 - Estensioni fisse: Box (00), Interfono (80), Direttore (99), Vicedirettore (98), Capo Cassiera (97), Ricevimento Merci (96)
 - Aggiungi un numero arbitrario di estensioni extra
 """)
@@ -67,13 +67,16 @@ if codice_pv and codice_pv.isdigit():
     for suffisso, ruolo in ruoli_fissi:
         interno = base + suffisso
         key = f"{interno} - {ruolo}"
-        mac_dict[key] = chiedi_mac(key)
+        if ruolo in ["Box", "Interfono"]:
+            mac_dict[key] = chiedi_mac(key)
+        else:
+            mac_dict[key] = ""
 
     for i in range(num_extra):
         interno = base + i
         key = f"{interno} - Estensione Extra"
         if interno not in [base + s for s, _ in ruoli_fissi]:
-            mac_dict[key] = chiedi_mac(key)
+            mac_dict[key] = ""  # No richiesta MAC per extra
 
     for chiave, mac in mac_dict.items():
         numero = chiave.split(" - ")[0]
