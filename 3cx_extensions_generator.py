@@ -37,7 +37,7 @@ colonne_complete = {
     'AllowLanOnly': '0', 'SIPID': '', 'DeliverAudio': '0', 'HotDesk': '0', 'SRTPMode': '0',
     'EmailMissedCalls': '0', 'MS365SignInDisabled': '0', 'MS365CalendarDisabled': '0',
     'MS365ContactsDisabled': '0', 'MS365TeamsDisabled': '0', 'GoogleSignInDisabled': '0',
-    'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': ''
+    'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': '<PhoneDevice><BLFS/></PhoneDevice>'
 }
 
 def generate_extensions(pv_code: str, count: int):
@@ -65,8 +65,7 @@ def generate_extensions(pv_code: str, count: int):
             "MAC": mac,
             "Router": mac,
             "Template": template,
-            "Model": model,
-            "BLF": f"{ext}"
+            "Model": model
         })
         extensions.append(row)
 
@@ -77,7 +76,8 @@ def generate_extensions(pv_code: str, count: int):
         if ext in used_suffixes:
             continue
         row = colonne_complete.copy()
-        mac = macs_extra[len([ext for ext in extensions if ext['FirstName'].startswith("User")])]
+        idx = len([ext for ext in extensions if ext['FirstName'].startswith("User")])
+        mac = macs_extra[idx] if idx < len(macs_extra) else ''
         row.update({
             "Number": ext,
             "FirstName": f"User{ext}",
@@ -85,8 +85,7 @@ def generate_extensions(pv_code: str, count: int):
             "MAC": mac,
             "Router": mac,
             "Template": "Yealink T42U",
-            "Model": "T42U",
-            "BLF": f"{ext}"
+            "Model": "T42U"
         })
         extensions.append(row)
 
@@ -98,7 +97,7 @@ if codice_pv and codice_pv.isdigit():
 
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="🗕️ Scarica CSV per 3CX",
+        label="🗅️ Scarica CSV per 3CX",
         data=csv,
         file_name='3cx_import_ready.csv',
         mime='text/csv'
