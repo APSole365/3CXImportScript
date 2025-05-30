@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -15,86 +14,83 @@ Questa app ti permette di generare un file `extensions.csv` per l'importazione i
 """)
 
 codice_pv = st.text_input("Codice Punto Vendita (PV)", max_chars=6)
-
 num_extensions = st.number_input("Numero di estensioni aggiuntive da generare", min_value=0, max_value=100, value=5)
 
-# Prompt per MAC address per Box e Interfono
-mac_box = st.text_input("MAC address per Box (interno 00)")
-mac_interfono = st.text_input("MAC address per Interfono (interno 80)")
+mac_box = st.text_input("MAC Address Box (interno 00)")
+mac_interfono = st.text_input("MAC Address Interfono (interno 80)")
 
-# Valori booleani e fissi presi dal file di esempio
-campi_booleani = {
-    "VMEnable": "0",
-    "VMNoPin": "1",
-    "VMPlayCallerID": "0",
-    "RecordCalls": "0",
-    "RecordExternal": "0",
-    "RecordCanSee": "0",
-    "RecordCanDelete": "0",
-    "RecordStartStop": "1",
-    "RecordNotify": "0",
-    "Disabled": "0",
-    "HideFWrules": "0",
-    "DisableExternalCalls": "0",
-    "HideInPhonebook": "0",
-    "CallScreening": "0",
-    "PinProtected": "0",
-    "AllowLanOnly": "1",
-    "HotDesk": "0",
-    "EmailMissedCalls": "1"
+macs_extra = []
+if num_extensions > 0:
+    for i in range(num_extensions):
+        mac = st.text_input(f"MAC Address per estensione aggiuntiva #{i+1}", key=f"mac_{i}")
+        macs_extra.append(mac)
+
+colonne_complete = {
+    'Number': '', 'FirstName': '', 'LastName': '', 'EmailAddress': '', 'MobileNumber': '',
+    'OutboundCallerID': '', 'DID': '', 'Role': '', 'Department': 'DEFAULT', 'ClickToCallAuth': '',
+    'WMApprove': '', 'WebMeetingFriendlyName': '', 'MAC': '', 'Template': '', 'Model': '',
+    'Router': '', 'Language': 'Italian', 'Ringtone': 'Ring 1', 'QRingtone': 'Ring 6', 'VMEnable': '0',
+    'VMLanguage': '', 'VMPlayMsgDateTime': '0', 'VMPIN': '', 'VMEmailOptions': '0', 'VMNoPin': '0',
+    'VMPlayCallerID': '0', 'RecordCalls': '0', 'RecordExternal': '0', 'RecordCanSee': '', 'RecordCanDelete': '',
+    'RecordStartStop': '', 'RecordNotify': '0', 'Disabled': '0', 'HideFWrules': '0', 'DisableExternalCalls': '0',
+    'HideInPhonebook': '0', 'CallScreening': '0', 'PinProtected': '0', 'PinTimeout': '', 'Transcription': '0',
+    'AllowLanOnly': '0', 'SIPID': '', 'DeliverAudio': '0', 'HotDesk': '0', 'SRTPMode': '',
+    'EmailMissedCalls': '0', 'MS365SignInDisabled': '0', 'MS365CalendarDisabled': '0',
+    'MS365ContactsDisabled': '0', 'MS365TeamsDisabled': '0', 'GoogleSignInDisabled': '0',
+    'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': ''
 }
-
-# Carichiamo le colonne da un file di esempio statico (dal sample PV587)
-colonne = [
-    'Number', 'FirstName', 'LastName', 'EmailAddress', 'MobileNumber', 'OutboundCallerID', 'DID', 'Role', 'Department',
-    'ClickToCallAuth', 'WMApprove', 'WebMeetingFriendlyName', 'MAC', 'Template', 'Model', 'Router', 'Language',
-    'Ringtone', 'QRingtone', 'VMEnable', 'VMLanguage', 'VMPlayMsgDateTime', 'VMPIN', 'VMEmailOptions', 'VMNoPin',
-    'VMPlayCallerID', 'RecordCalls', 'RecordExternal', 'RecordCanSee', 'RecordCanDelete', 'RecordStartStop',
-    'RecordNotify', 'Disabled', 'HideFWrules', 'DisableExternalCalls', 'HideInPhonebook', 'CallScreening',
-    'PinProtected', 'PinTimeout', 'Transcription', 'AllowLanOnly', 'SIPID', 'DeliverAudio', 'HotDesk', 'SRTPMode',
-    'EmailMissedCalls', 'MS365SignInDisabled', 'MS365CalendarDisabled', 'MS365ContactsDisabled', 'MS365TeamsDisabled',
-    'GoogleSignInDisabled', 'GoogleContactsDisabled', 'GoogleCalendarDisabled', 'BLF'
-]
 
 def generate_extensions(pv_code: str, count: int):
     base = int(pv_code) * 100
-    rows = []
+    extensions = []
 
-    def make_row(number, first_name, mac="", template="Yealink T42S", model="T42", role="", department="PV", blf=""):
-        row = {col: "" for col in colonne}
-        row["Number"] = number
-        row["FirstName"] = first_name
-        row["EmailAddress"] = f"user{number}@example.com"
-        row["MAC"] = mac
-        row["Router"] = mac
-        row["Template"] = template
-        row["Model"] = model
-        row["Language"] = "it"
-        row["Role"] = role
-        row["Department"] = department
-        row["WebMeetingFriendlyName"] = first_name
-        row["Ringtone"] = "Europe"
-        row["QRingtone"] = "Europe"
-        row["BLF"] = blf
-        row.update(campi_booleani)
-        return row
+    ruoli_fissi = [
+        (0, "Box", mac_box, "Yealink T42U", "T42U"),
+        (80, "Interfono", mac_interfono, "Fanvil PA3", "PA3"),
+        (99, "Direttore", '', "Yealink T42U", "T42U"),
+        (98, "Vicedirettore", '', "Yealink T42U", "T42U"),
+        (97, "Capo Cassiera", '', "Yealink T42U", "T42U"),
+        (96, "Ricevimento Merci", '', "Yealink T42U", "T42U")
+    ]
+    used_suffixes = set()
 
-    # Estensioni fisse
-    rows.append(make_row(base + 0, "Box", mac=mac_box, role="Box", blf=""))
-    rows.append(make_row(base + 80, "Interfono", mac=mac_interfono, role="Interfono", template="Fanvil PA3", model="PA3", blf=""))
-    rows.append(make_row(base + 99, "Direttore", role="Direttore"))
-    rows.append(make_row(base + 98, "Vicedirettore", role="Vicedirettore"))
-    rows.append(make_row(base + 97, "Capo Cassiera", role="Capo Cassiera"))
-    rows.append(make_row(base + 96, "Ricevimento Merci", role="Ricevimento Merci"))
+    for suffix, ruolo, mac, template, model in ruoli_fissi:
+        ext = base + suffix
+        used_suffixes.add(ext)
+        row = colonne_complete.copy()
+        row.update({
+            "Number": ext,
+            "FirstName": ruolo,
+            "EmailAddress": f"user{ext}@example.com",
+            "MAC": mac,
+            "Router": mac,
+            "Template": template,
+            "Model": model,
+            "BLF": f"{ext}"
+        })
+        extensions.append(row)
 
-    # Estensioni aggiuntive
-    for i in range(count):
-        ext = base + i
-        if ext in [base + s for s in [0, 80, 99, 98, 97, 96]]:
+    counter = 1
+    while len([ext for ext in extensions if ext['FirstName'].startswith("User")]) < count:
+        ext = base + counter
+        counter += 1
+        if ext in used_suffixes:
             continue
-        rows.append(make_row(ext, f"User{ext}"))
+        row = colonne_complete.copy()
+        mac = macs_extra[len([ext for ext in extensions if ext['FirstName'].startswith("User")])]
+        row.update({
+            "Number": ext,
+            "FirstName": f"User{ext}",
+            "EmailAddress": f"user{ext}@example.com",
+            "MAC": mac,
+            "Router": mac,
+            "Template": "Yealink T42U",
+            "Model": "T42U",
+            "BLF": f"{ext}"
+        })
+        extensions.append(row)
 
-    return pd.DataFrame(rows)
+    return pd.DataFrame(extensions)
 
 if codice_pv and codice_pv.isdigit():
     df = generate_extensions(codice_pv, num_extensions)
@@ -102,7 +98,7 @@ if codice_pv and codice_pv.isdigit():
 
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📥 Scarica CSV per 3CX",
+        label="📅 Scarica CSV per 3CX",
         data=csv,
         file_name='3cx_import_ready.csv',
         mime='text/csv'
