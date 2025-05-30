@@ -65,7 +65,9 @@ def generate_extensions(pv_code: str, count: int):
             "MAC": mac,
             "Router": mac,
             "Template": template,
-            "Model": model
+            "Model": model,
+            "BLF": '<PhoneDevice><BLFS/></PhoneDevice>',
+            "SRTPMode": '0'
         })
         extensions.append(row)
 
@@ -85,7 +87,9 @@ def generate_extensions(pv_code: str, count: int):
             "MAC": mac,
             "Router": mac,
             "Template": "Yealink T42U",
-            "Model": "T42U"
+            "Model": "T42U",
+            "BLF": '<PhoneDevice><BLFS/></PhoneDevice>',
+            "SRTPMode": '0'
         })
         extensions.append(row)
 
