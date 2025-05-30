@@ -34,7 +34,7 @@ colonne_complete = {
     'VMPlayCallerID': '0', 'RecordCalls': '0', 'RecordExternal': '0', 'RecordCanSee': '', 'RecordCanDelete': '',
     'RecordStartStop': '', 'RecordNotify': '0', 'Disabled': '0', 'HideFWrules': '0', 'DisableExternalCalls': '0',
     'HideInPhonebook': '0', 'CallScreening': '0', 'PinProtected': '0', 'PinTimeout': '', 'Transcription': '0',
-    'AllowLanOnly': '0', 'SIPID': '', 'DeliverAudio': '0', 'HotDesk': '0', 'SRTPMode': '',
+    'AllowLanOnly': '0', 'SIPID': '', 'DeliverAudio': '0', 'HotDesk': '0', 'SRTPMode': '0',
     'EmailMissedCalls': '0', 'MS365SignInDisabled': '0', 'MS365CalendarDisabled': '0',
     'MS365ContactsDisabled': '0', 'MS365TeamsDisabled': '0', 'GoogleSignInDisabled': '0',
     'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': ''
@@ -98,7 +98,7 @@ if codice_pv and codice_pv.isdigit():
 
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📅 Scarica CSV per 3CX",
+        label="🗕️ Scarica CSV per 3CX",
         data=csv,
         file_name='3cx_import_ready.csv',
         mime='text/csv'
