@@ -18,93 +18,83 @@ codice_pv = st.text_input("Codice Punto Vendita (PV)", max_chars=6)
 
 num_extensions = st.number_input("Numero di estensioni aggiuntive da generare", min_value=0, max_value=100, value=5)
 
-# Prompt MAC per Box e Interfono
-mac_addresses_extra = []
-for i in range(num_extensions):
-    mac_input = st.text_input(f"MAC Address per estensione aggiuntiva #{i+1}", key=f"mac_extra_{i}")
-    mac_addresses_extra.append(mac_input)
+# Prompt per MAC address per Box e Interfono
+mac_box = st.text_input("MAC address per Box (interno 00)")
+mac_interfono = st.text_input("MAC address per Interfono (interno 80)")
 
-mac_box = st.text_input("MAC Address - Box (interno 00)", max_chars=17)
-mac_interfono = st.text_input("MAC Address - Interfono (interno 80)", max_chars=17)
-
-# Campi fissi standard
-colonne_complete = {
-    'Number': '', 'FirstName': '', 'LastName': '', 'EmailAddress': '', 'MobileNumber': '',
-    'OutboundCallerID': '', 'DID': '', 'Role': '', 'Department': '', 'ClickToCallAuth': '',
-    'WMApprove': '', 'WebMeetingFriendlyName': '', 'MAC': '', 'Template': '', 'Model': '',
-    'Router': '', 'Language': 'it', 'Ringtone': '', 'QRingtone': '', 'VMEnable': '',
-    'VMLanguage': '', 'VMPlayMsgDateTime': '', 'VMPIN': '', 'VMEmailOptions': '', 'VMNoPin': '',
-    'VMPlayCallerID': '', 'RecordCalls': '', 'RecordExternal': '', 'RecordCanSee': '', 'RecordCanDelete': '',
-    'RecordStartStop': '', 'RecordNotify': '', 'Disabled': '', 'HideFWrules': '', 'DisableExternalCalls': '',
-    'HideInPhonebook': '', 'CallScreening': '', 'PinProtected': '', 'PinTimeout': '', 'Transcription': '',
-    'AllowLanOnly': '', 'SIPID': '', 'DeliverAudio': '', 'HotDesk': '', 'SRTPMode': '',
-    'EmailMissedCalls': '', 'MS365SignInDisabled': '', 'MS365CalendarDisabled': '',
-    'MS365ContactsDisabled': '', 'MS365TeamsDisabled': '', 'GoogleSignInDisabled': '',
-    'GoogleContactsDisabled': '', 'GoogleCalendarDisabled': '', 'BLF': ''
+# Valori booleani e fissi presi dal file di esempio
+campi_booleani = {
+    "VMEnable": "0",
+    "VMNoPin": "1",
+    "VMPlayCallerID": "0",
+    "RecordCalls": "0",
+    "RecordExternal": "0",
+    "RecordCanSee": "0",
+    "RecordCanDelete": "0",
+    "RecordStartStop": "1",
+    "RecordNotify": "0",
+    "Disabled": "0",
+    "HideFWrules": "0",
+    "DisableExternalCalls": "0",
+    "HideInPhonebook": "0",
+    "CallScreening": "0",
+    "PinProtected": "0",
+    "AllowLanOnly": "1",
+    "HotDesk": "0",
+    "EmailMissedCalls": "1"
 }
+
+# Carichiamo le colonne da un file di esempio statico (dal sample PV587)
+colonne = [
+    'Number', 'FirstName', 'LastName', 'EmailAddress', 'MobileNumber', 'OutboundCallerID', 'DID', 'Role', 'Department',
+    'ClickToCallAuth', 'WMApprove', 'WebMeetingFriendlyName', 'MAC', 'Template', 'Model', 'Router', 'Language',
+    'Ringtone', 'QRingtone', 'VMEnable', 'VMLanguage', 'VMPlayMsgDateTime', 'VMPIN', 'VMEmailOptions', 'VMNoPin',
+    'VMPlayCallerID', 'RecordCalls', 'RecordExternal', 'RecordCanSee', 'RecordCanDelete', 'RecordStartStop',
+    'RecordNotify', 'Disabled', 'HideFWrules', 'DisableExternalCalls', 'HideInPhonebook', 'CallScreening',
+    'PinProtected', 'PinTimeout', 'Transcription', 'AllowLanOnly', 'SIPID', 'DeliverAudio', 'HotDesk', 'SRTPMode',
+    'EmailMissedCalls', 'MS365SignInDisabled', 'MS365CalendarDisabled', 'MS365ContactsDisabled', 'MS365TeamsDisabled',
+    'GoogleSignInDisabled', 'GoogleContactsDisabled', 'GoogleCalendarDisabled', 'BLF'
+]
 
 def generate_extensions(pv_code: str, count: int):
     base = int(pv_code) * 100
-    extensions = []
+    rows = []
 
-    ruoli_fissi = [
-        (int("00"), "Box"),
-        (80, "Interfono"),
-        (99, "Direttore"),
-        (98, "Vicedirettore"),
-        (97, "Capo Cassiera"),
-        (96, "Ricevimento Merci")
-    ]
-    for suffix, nome in ruoli_fissi:
-        ext = base + suffix
-        row = colonne_complete.copy()
-        row.update({
-            "Number": ext,
-            "FirstName": nome,
-            "EmailAddress": f"user{ext}@example.com",
-            "WebMeetingFriendlyName": nome,
-            "Language": "it",
-            "BLF": f"{ext}*{nome}"
-        })
-        if nome == "Box":
-            row["MAC"] = mac_box
-            row["Router"] = mac_box
-            row["Template"] = "yealinkT4x.ph.xml"
-            row["Model"] = "Yealink T42U"
-        elif nome == "Interfono":
-            row["MAC"] = mac_interfono
-            row["Router"] = mac_interfono
-            row["Template"] = "fanvil_doorphone.ph.xml"
-            row["Model"] = "Fanvil PA3"
-        else:
-            row["Template"] = "yealinkT4x.ph.xml"
-            row["Model"] = "Yealink T42U"
-        extensions.append(row)
+    def make_row(number, first_name, mac="", template="Yealink T42S", model="T42", role="", department="PV", blf=""):
+        row = {col: "" for col in colonne}
+        row["Number"] = number
+        row["FirstName"] = first_name
+        row["EmailAddress"] = f"user{number}@example.com"
+        row["MAC"] = mac
+        row["Router"] = mac
+        row["Template"] = template
+        row["Model"] = model
+        row["Language"] = "it"
+        row["Role"] = role
+        row["Department"] = department
+        row["WebMeetingFriendlyName"] = first_name
+        row["Ringtone"] = "Europe"
+        row["QRingtone"] = "Europe"
+        row["BLF"] = blf
+        row.update(campi_booleani)
+        return row
 
-    # Estensioni extra
-    
+    # Estensioni fisse
+    rows.append(make_row(base + 0, "Box", mac=mac_box, role="Box", blf=""))
+    rows.append(make_row(base + 80, "Interfono", mac=mac_interfono, role="Interfono", template="Fanvil PA3", model="PA3", blf=""))
+    rows.append(make_row(base + 99, "Direttore", role="Direttore"))
+    rows.append(make_row(base + 98, "Vicedirettore", role="Vicedirettore"))
+    rows.append(make_row(base + 97, "Capo Cassiera", role="Capo Cassiera"))
+    rows.append(make_row(base + 96, "Ricevimento Merci", role="Ricevimento Merci"))
+
+    # Estensioni aggiuntive
     for i in range(count):
         ext = base + i
-        if ext in [base + s for s, _ in ruoli_fissi]:
+        if ext in [base + s for s in [0, 80, 99, 98, 97, 96]]:
             continue
-        row = colonne_complete.copy()
-        mac_extra = mac_addresses_extra[i] if i < len(mac_addresses_extra) else ""
-        row.update({
-            "Number": ext,
-            "FirstName": f"User{ext}",
-            "EmailAddress": f"user{ext}@example.com",
-            "WebMeetingFriendlyName": f"User{ext}",
-            "Template": "yealinkT4x.ph.xml",
-            "Model": "Yealink T42U",
-            "Language": "it",
-            "BLF": f"{ext}*User{ext}",
-            "MAC": mac_extra,
-            "Router": mac_extra
-        })
-        extensions.append(row)
+        rows.append(make_row(ext, f"User{ext}"))
 
-
-    return pd.DataFrame(extensions)
+    return pd.DataFrame(rows)
 
 if codice_pv and codice_pv.isdigit():
     df = generate_extensions(codice_pv, num_extensions)
