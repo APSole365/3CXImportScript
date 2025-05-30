@@ -40,6 +40,12 @@ colonne_complete = {
     'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': ''
 }
 
+DEVICE_CONFIG = {
+    "Box": ("yealink_t42u.xml", "T42U"),
+    "Interfono": ("fanvil_pa3.xml", "PA3"),
+    "Default": ("yealink_t42u.xml", "T42U")
+}
+
 def crea_blf_stringa(pv_code):
     base = int(pv_code) * 100
     blf_list = [f"<BLF>{base + ext}@ext</BLF>" for ext in [0, 80, 99, 98, 97, 96]]
@@ -51,18 +57,19 @@ def generate_extensions(pv_code: str, count: int):
     blf_string = crea_blf_stringa(pv_code)
 
     ruoli_fissi = [
-        (0, "Box", mac_box, "yealink_t42u", "T42U"),
-        (80, "Interfono", mac_interfono, "fanvil_pa3", "PA3"),
-        (99, "Direttore", '', "yealink_t42u", "T42U"),
-        (98, "Vicedirettore", '', "yealink_t42u", "T42U"),
-        (97, "Capo Cassiera", '', "yealink_t42u", "T42U"),
-        (96, "Ricevimento Merci", '', "yealink_t42u", "T42U")
+        (0, "Box", mac_box),
+        (80, "Interfono", mac_interfono),
+        (99, "Direttore", ''),
+        (98, "Vicedirettore", ''),
+        (97, "Capo Cassiera", ''),
+        (96, "Ricevimento Merci", '')
     ]
     used_suffixes = set()
 
-    for suffix, ruolo, mac, template, model in ruoli_fissi:
+    for suffix, ruolo, mac in ruoli_fissi:
         ext = base + suffix
         used_suffixes.add(ext)
+        template, model = DEVICE_CONFIG.get(ruolo, DEVICE_CONFIG["Default"])
         row = colonne_complete.copy()
         row.update({
             "Number": ext,
@@ -86,14 +93,15 @@ def generate_extensions(pv_code: str, count: int):
         row = colonne_complete.copy()
         idx = len([ext for ext in extensions if ext['FirstName'].startswith("User")])
         mac = macs_extra[idx] if idx < len(macs_extra) else ''
+        template, model = DEVICE_CONFIG["Default"]
         row.update({
             "Number": ext,
             "FirstName": f"User{ext}",
             "EmailAddress": f"user{ext}@example.com",
             "MAC": mac,
             "Router": mac,
-            "Template": "yealink_t42u",
-            "Model": "T42U",
+            "Template": template,
+            "Model": model,
             "BLF": blf_string,
             "SRTPMode": '0'
         })
