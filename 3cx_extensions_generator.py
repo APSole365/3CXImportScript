@@ -3,7 +3,7 @@ import pandas as pd
 from io import BytesIO
 
 st.set_page_config(page_title="3CX Extensions Generator", layout="centered")
-st.title("\ud83d\udcde 3CX Extensions Generator")
+st.title("📞 3CX Extensions Generator")
 
 st.markdown("""
 Questa app ti permette di generare un file `extensions.csv` per l'importazione in 3CX partendo da un codice punto vendita.
@@ -113,7 +113,7 @@ if codice_pv and codice_pv.isdigit():
 
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="\ud83d\uddc5\ufe0f Scarica CSV per 3CX",
+        label="📅 Scarica CSV per 3CX",
         data=csv,
         file_name='3cx_import_ready.csv',
         mime='text/csv'
