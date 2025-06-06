@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -27,7 +28,7 @@ if num_extensions > 0:
 
 colonne_complete = {
     'Number': '', 'FirstName': '', 'LastName': '', 'EmailAddress': '', 'MobileNumber': '',
-    'OutboundCallerID': '', 'DID': '', 'Role': '', 'Department': 'DEFAULT', 'ClickToCallAuth': '',
+    'OutboundCallerID': '', 'DID': '', 'Role': '<role name="users" />', 'Department': 'DEFAULT', 'ClickToCallAuth': '0',
     'WMApprove': '', 'WebMeetingFriendlyName': '', 'MAC': '', 'Template': '', 'Model': '',
     'Router': '', 'Language': 'Italian', 'Ringtone': 'Ring1.wav', 'QRingtone': 'Ring6.wav', 'VMEnable': '0',
     'VMLanguage': '', 'VMPlayMsgDateTime': '0', 'VMPIN': '', 'VMEmailOptions': '0', 'VMNoPin': '0',
@@ -35,15 +36,9 @@ colonne_complete = {
     'RecordStartStop': '', 'RecordNotify': '0', 'Disabled': '0', 'HideFWrules': '0', 'DisableExternalCalls': '0',
     'HideInPhonebook': '0', 'CallScreening': '0', 'PinProtected': '0', 'PinTimeout': '', 'Transcription': '0',
     'AllowLanOnly': '0', 'SIPID': '', 'DeliverAudio': '0', 'HotDesk': '0', 'SRTPMode': '0',
-    'EmailMissedCalls': '0', 'MS365SignInDisabled': '0', 'MS365CalendarDisabled': '0',
+    'EmailMissedCalls': '1', 'MS365SignInDisabled': '0', 'MS365CalendarDisabled': '0',
     'MS365ContactsDisabled': '0', 'MS365TeamsDisabled': '0', 'GoogleSignInDisabled': '0',
     'GoogleContactsDisabled': '0', 'GoogleCalendarDisabled': '0', 'BLF': ''
-}
-
-DEVICE_CONFIG = {
-    "Box": ("yealink_t42u.xml", "T42U"),
-    "Interfono": ("fanvil_pa3.xml", "PA3"),
-    "Default": ("yealink_t42u.xml", "T42U")
 }
 
 def crea_blf_stringa(pv_code):
@@ -55,30 +50,29 @@ def generate_extensions(pv_code: str, count: int):
     blf_string = crea_blf_stringa(pv_code)
 
     ruoli_fissi = [
-        (0, "Box", mac_box),
-        (80, "Interfono", mac_interfono),
-        (99, "Direttore", ''),
-        (98, "Vicedirettore", ''),
-        (97, "Capo Cassiera", ''),
-        (96, "Ricevimento Merci", '')
+        (0, "Box", mac_box, "yealinkT4x.ph.xml", "T42U"),
+        (80, "Interfono", mac_interfono, "fanvil_pa3.xml", "PA3"),
+        (99, "Direttore", '', "snom_d765.xml", "D765"),
+        (98, "Vicedirettore", '', "snom_d765.xml", "D765"),
+        (97, "Capo Cassiera", '', "snom_d765.xml", "D765"),
+        (96, "Ricevimento Merci", '', "snom_d765.xml", "D765")
     ]
+
     used_suffixes = set()
 
-    for suffix, ruolo, mac in ruoli_fissi:
+    for suffix, ruolo, mac, template, model in ruoli_fissi:
         ext = base + suffix
         used_suffixes.add(ext)
-        template, model = DEVICE_CONFIG.get(ruolo, DEVICE_CONFIG["Default"])
         row = colonne_complete.copy()
         row.update({
             "Number": ext,
-            "FirstName": ruolo,
+            "FirstName": f"{ext} {ruolo}",
             "EmailAddress": f"user{ext}@example.com",
             "MAC": mac,
             "Router": mac,
             "Template": template,
             "Model": model,
-            "BLF": blf_string,
-            "SRTPMode": '0'
+            "BLF": blf_string
         })
         extensions.append(row)
 
@@ -91,17 +85,15 @@ def generate_extensions(pv_code: str, count: int):
         row = colonne_complete.copy()
         idx = len([ext for ext in extensions if ext['FirstName'].startswith("User")])
         mac = macs_extra[idx] if idx < len(macs_extra) else ''
-        template, model = DEVICE_CONFIG["Default"]
         row.update({
             "Number": ext,
             "FirstName": f"User{ext}",
             "EmailAddress": f"user{ext}@example.com",
             "MAC": mac,
             "Router": mac,
-            "Template": template,
-            "Model": model,
-            "BLF": blf_string,
-            "SRTPMode": '0'
+            "Template": "yealinkT4x.ph.xml",
+            "Model": "T31G",
+            "BLF": blf_string
         })
         extensions.append(row)
 
@@ -113,7 +105,7 @@ if codice_pv and codice_pv.isdigit():
 
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📅 Scarica CSV per 3CX",
+        label="🗅 Scarica CSV per 3CX",
         data=csv,
         file_name='3cx_import_ready.csv',
         mime='text/csv'
