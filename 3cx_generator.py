@@ -20,7 +20,7 @@ def create_extension_row(number, first_name, department_code, department_name, m
         'OutboundCallerID': '',
         'DID': '',
         'Role': '<role name="users" />',
-        'Department': f'{department_code} | {department_name}',
+        'Department': f'566{department_code} | {department_name}',
         'ClickToCallAuth': 0,
         'WMApprove': 0,
         'WebMeetingFriendlyName': web_meeting_name,
@@ -94,7 +94,7 @@ def main():
         st.error("Il codice punto vendita deve essere numerico")
         return
     
-    department_full = f"{store_code_int}590 | {store_location}"
+    department_full = f"566{store_code} | {store_location}"
     
     st.markdown("---")
     
@@ -133,13 +133,23 @@ def main():
     st.write("Seleziona i reparti presenti nel punto vendita:")
     
     reparti_config = {
+        "Pescheria Banco": {"code": "31", "selected": False, "mac": ""},
+        "Pescheria Lab": {"code": "41", "selected": False, "mac": ""},
+        "Surgelati Banco": {"code": "32", "selected": False, "mac": ""},
+        "Surgelati Lab": {"code": "42", "selected": False, "mac": ""},
+        "Bar": {"code": "33", "selected": False, "mac": ""},
+        "Bar Lab": {"code": "43", "selected": False, "mac": ""},
         "Gastronomia Banco": {"code": "34", "selected": False, "mac": ""},
-        "Macelleria Banco": {"code": "35", "selected": False, "mac": ""},
-        "Panetteria Banco": {"code": "38", "selected": False, "mac": ""},
         "Gastronomia Lab": {"code": "44", "selected": False, "mac": ""},
+        "Macelleria Banco": {"code": "35", "selected": False, "mac": ""},
         "Macelleria Lab": {"code": "45", "selected": False, "mac": ""},
+        "Ortofrutta Banco": {"code": "36", "selected": False, "mac": ""},
         "Ortofrutta Lab": {"code": "46", "selected": False, "mac": ""},
-        "Panetteria Lab": {"code": "48", "selected": False, "mac": ""}
+        "Cucina/Bistrò": {"code": "37", "selected": False, "mac": ""},
+        "Panetteria Banco": {"code": "38", "selected": False, "mac": ""},
+        "Panetteria Lab": {"code": "48", "selected": False, "mac": ""},
+        "Pasticceria Banco": {"code": "39", "selected": False, "mac": ""},
+        "Pasticceria Lab": {"code": "49", "selected": False, "mac": ""}
     }
     
     for reparto, config in reparti_config.items():
@@ -157,6 +167,24 @@ def main():
         if config["selected"] and not config["mac"]:
             st.error(f"Inserisci il MAC address per {reparto}")
             return
+    
+    st.markdown("---")
+    
+    # CosìComodo
+    st.header("📱 CosìComodo")
+    st.info("Il CosìComodo ha sempre interno '90'")
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        cosicomodo_presente = st.checkbox("CosìComodo presente")
+    with col2:
+        cosicomodo_mac = ""
+        if cosicomodo_presente:
+            cosicomodo_mac = st.text_input("MAC Address CosìComodo", placeholder="44DBD284CC90")
+    
+    if cosicomodo_presente and not cosicomodo_mac:
+        st.error("Inserisci il MAC address del CosìComodo")
+        return
     
     st.markdown("---")
     
@@ -181,7 +209,7 @@ def main():
             extensions.append(create_extension_row(
                 number=f"{store_code}00",
                 first_name=f"{store_code}00 Box",
-                department_code=store_code_int,
+                department_code=store_code,
                 department_name=store_location,
                 mac_address=master_mac,
                 model="Yealink T42U",
@@ -194,7 +222,7 @@ def main():
                 extensions.append(create_extension_row(
                     number=f"{store_code}0{i+1}",
                     first_name=f"{store_code}0{i+1} Cassa {i+1:02d}",
-                    department_code=store_code_int,
+                    department_code=store_code,
                     department_name=store_location,
                     mac_address=casse_macs[i],
                     model="Yealink T31G",
@@ -209,7 +237,7 @@ def main():
                     extensions.append(create_extension_row(
                         number=f"{store_code}{config['code']}",
                         first_name=f"{store_code}{config['code']} {reparto}",
-                        department_code=store_code_int,
+                        department_code=store_code,
                         department_name=store_location,
                         mac_address=config["mac"],
                         model="Yealink T31G",
@@ -221,13 +249,26 @@ def main():
             extensions.append(create_extension_row(
                 number=f"{store_code}80",
                 first_name=f"{store_code}80 Interfono",
-                department_code=store_code_int,
+                department_code=store_code,
                 department_name=store_location,
                 mac_address=interfono_mac,
                 model="Fanvil PA3",
                 template="fanvil_doorphone.ph.xml",
                 vm_pin="711831"
             ))
+            
+            # CosìComodo (se presente)
+            if cosicomodo_presente:
+                extensions.append(create_extension_row(
+                    number=f"{store_code}90",
+                    first_name=f"{store_code}90 CosìComodo",
+                    department_code=store_code,
+                    department_name=store_location,
+                    mac_address=cosicomodo_mac,
+                    model="Yealink T31G",
+                    template="yealinkT4x.ph.xml",
+                    vm_pin="307426"
+                ))
             
             # Interni fissi di default
             default_extensions = [
@@ -241,7 +282,7 @@ def main():
                 row = create_extension_row(
                     number=f"{store_code}{ext['code']}",
                     first_name=f"{store_code}{ext['code']} {ext['name']}",
-                    department_code=store_code_int,
+                    department_code=store_code,
                     department_name=store_location,
                     mac_address="",
                     model="",
