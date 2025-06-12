@@ -7,7 +7,7 @@ def generate_random_mac():
     """Genera un MAC address casuale nel formato richiesto"""
     return ''.join(['%02X' % (uuid.uuid4().int >> i & 0xFF) for i in range(0, 48, 8)])
 
-def create_extension_row(number, first_name, department_code, department_name, mac_address, model, template, vm_pin):
+def create_extension_row(number, first_name, department_code, department_name, mac_address, model, template, vm_pin, is_cordless=False):
     """Crea una riga per un interno"""
     web_meeting_name = first_name.lower().replace(' ', '').replace('-', '')
     
@@ -27,10 +27,10 @@ def create_extension_row(number, first_name, department_code, department_name, m
         'MAC': mac_address,
         'Template': template,
         'Model': model,
-        'Router': '44DBD28F21BD',
+        'Router': '' if is_cordless else '44DBD28F21BD',
         'Language': 'Italian',
-        'Ringtone': 'Ring 1' if model != 'Fanvil PA3' else '',
-        'QRingtone': 'Ring 6' if model != 'Fanvil PA3' else '',
+        'Ringtone': 'Ring 1' if model != 'Fanvil PA3' and model != '' else '',
+        'QRingtone': 'Ring 6' if model != 'Fanvil PA3' and model != '' else '',
         'VMEnable': 0,
         'VMLanguage': '307392E1-F915-4f3a-9362-5049AADC242C',
         'VMPlayMsgDateTime': 0,
@@ -133,12 +133,12 @@ def main():
     st.write("Seleziona i reparti presenti nel punto vendita:")
     
     reparti_config = {
-        "Pescheria Banco": {"code": "31", "selected": False, "mac": ""},
-        "Pescheria Lab": {"code": "41", "selected": False, "mac": ""},
-        "Surgelati Banco": {"code": "32", "selected": False, "mac": ""},
-        "Surgelati Lab": {"code": "42", "selected": False, "mac": ""},
-        "Bar": {"code": "33", "selected": False, "mac": ""},
-        "Bar Lab": {"code": "43", "selected": False, "mac": ""},
+        "Pescheria Banco": {"code": "20", "selected": False, "mac": ""},
+        "Pescheria Lab": {"code": "21", "selected": False, "mac": ""},
+        "Surgelati Banco": {"code": "22", "selected": False, "mac": ""},
+        "Surgelati Lab": {"code": "23", "selected": False, "mac": ""},
+        "Bar": {"code": "24", "selected": False, "mac": ""},
+        "Bar Lab": {"code": "25", "selected": False, "mac": ""},
         "Gastronomia Banco": {"code": "34", "selected": False, "mac": ""},
         "Gastronomia Lab": {"code": "44", "selected": False, "mac": ""},
         "Macelleria Banco": {"code": "35", "selected": False, "mac": ""},
@@ -287,7 +287,8 @@ def main():
                     mac_address="",
                     model="",
                     template="",
-                    vm_pin=ext["pin"]
+                    vm_pin=ext["pin"],
+                    is_cordless=True
                 )
                 extensions.append(row)
             
