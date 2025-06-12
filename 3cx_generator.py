@@ -7,7 +7,7 @@ def generate_random_mac():
     """Genera un MAC address casuale nel formato richiesto"""
     return ''.join(['%02X' % (uuid.uuid4().int >> i & 0xFF) for i in range(0, 48, 8)])
 
-def create_extension_row(number, first_name, department_code, department_name, mac_address, model, template, vm_pin, is_cordless=False):
+def create_extension_row(number, first_name, department_code, department_name, mac_address, model, template, vm_pin, master_mac, is_cordless=False):
     """Crea una riga per un interno"""
     web_meeting_name = first_name.lower().replace(' ', '').replace('-', '')
     
@@ -27,7 +27,7 @@ def create_extension_row(number, first_name, department_code, department_name, m
         'MAC': mac_address,
         'Template': template,
         'Model': model,
-        'Router': '' if is_cordless else '44DBD28F21BD',
+        'Router': master_mac if not is_cordless else '',
         'Language': 'Italian',
         'Ringtone': 'Ring 1' if model != 'Fanvil PA3' and model != '' else '',
         'QRingtone': 'Ring 6' if model != 'Fanvil PA3' and model != '' else '',
@@ -98,11 +98,11 @@ def main():
     
     st.markdown("---")
     
-    # Telefono Master (Box)
-    st.header("📞 Telefono Master (Box)")
-    st.info("Il telefono master è sempre un Yealink T42U con interno '00'")
+    # Telefono Master (Router)
+    st.header("🌐 Telefono Master (Router)")
+    st.info("Il telefono master viene usato solo come Router per gli altri telefoni. L'interno Box '00' va creato manualmente.")
     
-    master_mac = st.text_input("MAC Address telefono Master (Box)", placeholder="44DBD28F21BD")
+    master_mac = st.text_input("MAC Address telefono Master (per Router)", placeholder="44DBD28F21BD")
     
     if not master_mac:
         st.error("Inserisci il MAC address del telefono master")
@@ -205,17 +205,7 @@ def main():
         try:
             extensions = []
             
-            # Telefono Master (Box)
-            extensions.append(create_extension_row(
-                number=f"{store_code}00",
-                first_name=f"{store_code}00 Box",
-                department_code=store_code,
-                department_name=store_location,
-                mac_address=master_mac,
-                model="Yealink T42U",
-                template="yealinkT4x.ph.xml",
-                vm_pin="917011"
-            ))
+            # NON creiamo più l'interno Box 00 - va fatto manualmente
             
             # Casse
             for i in range(num_casse):
@@ -227,7 +217,8 @@ def main():
                     mac_address=casse_macs[i],
                     model="Yealink T31G",
                     template="yealinkT4x.ph.xml",
-                    vm_pin="307426"
+                    vm_pin="307426",
+                    master_mac=master_mac
                 ))
             
             # Reparti
@@ -242,7 +233,8 @@ def main():
                         mac_address=config["mac"],
                         model="Yealink T31G",
                         template="yealinkT4x.ph.xml",
-                        vm_pin="307426"
+                        vm_pin="307426",
+                        master_mac=master_mac
                     ))
             
             # Interfono
@@ -254,7 +246,8 @@ def main():
                 mac_address=interfono_mac,
                 model="Fanvil PA3",
                 template="fanvil_doorphone.ph.xml",
-                vm_pin="711831"
+                vm_pin="711831",
+                master_mac=master_mac
             ))
             
             # CosìComodo (se presente)
@@ -267,7 +260,8 @@ def main():
                     mac_address=cosicomodo_mac,
                     model="Yealink T31G",
                     template="yealinkT4x.ph.xml",
-                    vm_pin="307426"
+                    vm_pin="307426",
+                    master_mac=master_mac
                 ))
             
             # Interni fissi di default
@@ -288,6 +282,7 @@ def main():
                     model="",
                     template="",
                     vm_pin=ext["pin"],
+                    master_mac=master_mac,
                     is_cordless=True
                 )
                 extensions.append(row)
@@ -302,6 +297,7 @@ def main():
             
             # Mostra anteprima
             st.success(f"✅ CSV generato con successo! ({len(extensions)} interni)")
+            st.info("ℹ️ Nota: L'interno Box '00' non è incluso nel CSV e va creato manualmente")
             st.subheader("📋 Anteprima")
             st.dataframe(df[['Number', 'FirstName', 'Model', 'MAC']], use_container_width=True)
             
